@@ -1,13 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { RiDeleteBinLine } from "react-icons/ri";
 import Link from "next/link";
-import { client } from "../../sanity/lib/client";
+import { client } from "@/sanity/lib/client";
 import imageUrlBuilder from "@sanity/image-url";
-import { SanityImageSource } from "../../sanity/lib/image";
+import { SanityImageSource } from "@sanity/image-url/lib/types/types";
 
-// Sanity Image Builder
 const builder = imageUrlBuilder(client);
 function urlFor(source: SanityImageSource) {
   return builder.image(source);
@@ -27,10 +25,9 @@ interface Product {
 
 export default function CartPage() {
   const [sanityData, setSanityData] = useState<Product[]>([]);
-  const [cart, setCart] = useState<string[]>([]); // Update cart type to `string[]` for `_id`
+  const [cart, setCart] = useState<string[]>([]);
   const [cartItems, setCartItems] = useState<Product[]>([]);
 
-  // Fetch Products from Sanity
   useEffect(() => {
     const fetchProduct = async () => {
       const query = `*[_type == "product"] {
@@ -51,7 +48,6 @@ export default function CartPage() {
     fetchProduct();
   }, []);
 
-  // Sync Cart and Sanity Data
   useEffect(() => {
     const savedCart: string[] = JSON.parse(localStorage.getItem("cart") || "[]");
     setCart(savedCart);
@@ -64,7 +60,6 @@ export default function CartPage() {
     }
   }, [sanityData]);
 
-  // Remove Item from Cart
   const removeFromCart = (id: string) => {
     const updatedCart = cart.filter((productId) => productId !== id);
     setCart(updatedCart);
@@ -76,7 +71,6 @@ export default function CartPage() {
     setCartItems(updatedItems);
   };
 
-  // Calculate Total Price
   const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
 
   return (
@@ -124,7 +118,12 @@ export default function CartPage() {
                 </h1>
 
                 <button onClick={() => removeFromCart(item._id)}>
-                  <RiDeleteBinLine color="[#B88E2F]" size={20} />
+                  <Image
+                    src="/icons/delete-icon.png" // Path to your delete icon image
+                    alt="Delete"
+                    width={20}
+                    height={20}
+                  />
                 </button>
               </div>
             ))

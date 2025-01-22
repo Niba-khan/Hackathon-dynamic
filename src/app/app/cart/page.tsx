@@ -18,64 +18,67 @@ interface Product {
   price: number;
   originalPrice: number;
   discount: number;
-  image: string;
+  image: SanityImageSource;
   alt: string;
-  quantity: number;
 }
 
-// This is a Cart Page component for an ecommerce application built with Next.js.
 export default function CartPage() {
   const [sanityData, setSanityData] = useState<Product[]>([]);
   const [cart, setCart] = useState<string[]>([]);
   const [cartItems, setCartItems] = useState<Product[]>([]);
 
+  // Fetch products from Sanity
   useEffect(() => {
-    const fetchProduct = async () => {
-      const query = `*[_type == "product"] {
-        _id,
-        name,
-        description,
-        price,
-        originalPrice,
-        discount,
-        image,
-        alt,
-      }`;
-
-      const data: Product[] = await client.fetch(query);
-      setSanityData(data);
+    const fetchProducts = async () => {
+      try {
+        const query = `*[_type == "product"] {
+          _id,
+          name,
+          description,
+          price,
+          originalPrice,
+          discount,
+          image,
+          alt,
+        }`;
+        const data: Product[] = await client.fetch(query);
+        setSanityData(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
     };
 
-    fetchProduct();
+    fetchProducts();
   }, []);
 
+  // Update cart items when sanityData or cart changes
   useEffect(() => {
     const savedCart: string[] = JSON.parse(localStorage.getItem("cart") || "[]");
     setCart(savedCart);
+  }, []);
 
+  useEffect(() => {
     if (sanityData.length > 0) {
-      const items = savedCart
-        .map((id) => sanityData.find((p) => p._id === id))
+      const items = cart
+        .map((id) => sanityData.find((product) => product._id === id))
         .filter((item): item is Product => Boolean(item));
       setCartItems(items);
     }
-  }, [sanityData]);
+  }, [sanityData, cart]);
 
+  // Remove item from cart
   const removeFromCart = (id: string) => {
     const updatedCart = cart.filter((productId) => productId !== id);
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    const updatedItems = updatedCart
-      .map((id) => sanityData.find((p) => p._id === id))
-      .filter((item): item is Product => Boolean(item));
-    setCartItems(updatedItems);
   };
 
+  // Calculate total price
   const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
 
   return (
     <div className="max-w-[1440px] mx-auto overflow-hidden">
+      {/* Cart Banner */}
       <div>
         <Image
           src={"/image/cart.png"}
@@ -86,6 +89,7 @@ export default function CartPage() {
         />
       </div>
 
+      {/* Main Cart Section */}
       <div className="flex flex-col custom:flex-row justify-between items-start lg:items-center custom:items-start mx-4 lg:mx-[100px] my-[56px] gap-8 lg:gap-0">
         <div className="flex flex-col justify-start items-center gap-[56px] w-full lg:w-auto">
           <div className="w-full hidden lg:w-[817px] h-[55px] bg-[#F9F1E7] rounded-lg md:flex justify-between items-center px-[30px]">
@@ -94,6 +98,7 @@ export default function CartPage() {
             <h1 className="font-[500] text-[16px] leading-6">Actions</h1>
           </div>
 
+          {/* Render Cart Items */}
           {cartItems.length > 0 ? (
             cartItems.map((item) => (
               <div
@@ -133,6 +138,7 @@ export default function CartPage() {
           )}
         </div>
 
+        {/* Cart Summary */}
         <div className="w-full lg:w-[393px] h-auto bg-[#F9F1E7] rounded-lg px-[20px] lg:px-[75px] py-3 flex flex-col justify-start items-center">
           <h1 className="font-[600] text-[32px] leading-[48px] text-black text-center">
             Cart Totals

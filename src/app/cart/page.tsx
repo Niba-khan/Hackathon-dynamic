@@ -23,6 +23,7 @@ interface Product {
   quantity: number;
 }
 
+// This is a Cart Page component for an ecommerce application built with Next.js.
 export default function CartPage() {
   const [sanityData, setSanityData] = useState<Product[]>([]);
   const [cart, setCart] = useState<string[]>([]);
